@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro Pessoal de Atividades</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+	#menuButton {
+    		font-size: 24px;
+    		background: none;
+    		border: none;
+    		cursor: pointer;
+    		position: absolute;
+    		left: 0px;
+    		top: 1px;
+	}
+
+	#menuDropdown {
+  		display: none;
+  		position: absolute;
+  		top: 50px;
+  		left: 10px;
+  		background: linear-gradient(to bottom, #f2f8f3, #e5e5e5);
+  		border: 2px solid #ccc;
+  		border-radius: 10px;
+  		box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.9), 0px 6px 12px rgba(0, 0, 0, 0.9);
+  		transform: translateY(-2px);
+  		width: 200px;
+  		z-index: 2;
+	}
+
+	#menuDropdown button {
+  		width: 100%;
+  		padding: 10px;
+  		border: none;
+  		background-color: #f2f8f3;
+  		color: black;
+  		cursor: pointer;
+  		text-align: left;
+  		transition: 0.2s ease-in-out;
+	}
+
+	#menuDropdown button:hover {
+  		background-color: #d4ecd7;
+	}
+
+
+        .header {
+            background-color: #3AC57A;
+            color: white;
+            text-align: center;
+            padding: 5px 0;
+            flex-shrink: 0;
+        }
+
+ 	.header h1 {
+    		font-size: 20px; /* Tamanho reduzido do título */
+    		display: inline-block; /* Faz com que o título e o botão fiquem na mesma linha */
+    		margin: 0; /* Remove margem do título */
+	}
+
+	#toggleActivityButton {
+    		color: #3AC57A; /* Cor do botão */
+    		font-size: 30px; /* Tamanho do texto */
+    		margin-left: 20px; /* Espaço entre o título e o botão */
+	}
+
+
+        .footer {
+            background-color: #3AC57A;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            flex-shrink: 0;
+        }
+
+        .container {
+            flex-grow: 1;
+            padding: 10px;
+            background-color: #f2f8f3;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .activity-list {
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #fff;
+            /* max-height: calc(100vh - 200px);  Ajuste para a altura total menos o cabeçalho e rodapé */
+ 		max-height: calc(80vh); /* Adjust the value as needed */
+            width: 100%;
+        }
+
+        .activity {
+            display: flex;
+            flex-direction: column;
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .activity:last-child {
+            border-bottom: none;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .add-activity-container {
+	    position: relative;
+	    display: none; /* Inicialmente oculto */
+            background-color: #d4ecd7;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px auto;
+            width: 90%;
+            max-width: 700px;
+            box-sizing: border-box;
+        }
+
+	.add-activity-container h2 {
+    		font-weight: bold;
+    		color: #3AC57A; /* Azul escuro para maior contraste */
+    		font-size: 23px; /* Aumenta o tamanho da fonte para dar destaque 				*/
+	}
+ 	.add-activity-title {
+        	font-weight: bold;
+        	color: #3AC57A; /* Verde intenso */
+    	}
+	
+        button {
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+	.hour-adjust, .minute-adjust {
+    		display: inline-flex;
+    		align-items: center;
+    		/* gap: -10px;  Espaço entre botão e campo de entrada */
+	}
+
+     	.button-adjust {
+    		width: 35px; /* Aumenta o tamanho dos botões */
+    		height: 50px;
+    		font-size: 40px; /* Aumenta o tamanho da fonte nos botões */
+        }
+
+        .time-container {
+            display: inline-flex;
+            justify-content: center;
+    	    gap: 20px; /* Espaço entre os grupos de horas e minutos */
+            margin-top: 10px;
+        }
+
+        .time-input {
+            width: 60px;
+            text-align: center;
+            font-size: 18px;
+            /* margin: 0 5px; */
+        }
+
+    	/* Placeholder com fonte menor */
+    	.time-input::placeholder {
+        	font-size: 13px; /* Diminui o tamanho do placeholder */
+     	}
+
+        h1, h2 {
+            	margin: 5px 0;
+		font-size: 20px;
+        }
+
+        #totais {
+            margin: 5px 0;
+        }
+
+        .activity-date {
+            font-weight: bold;
+            margin-bottom: 2px;
+ 	    text-align: left;
+        }
+
+        .activity-info {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .filter-container {
+  		margin: 10px auto; 
+  		padding: 10px; 
+  		background-color: #d4ecd7; 
+  		border-radius: 8px; 
+  		border: 1px solid #ccc; 
+  		width: 90%; 
+  		max-width: 700px; 
+  		box-sizing: border-box; 
+  		position: relative;
+		color: #3AC57A;
+	}
+
+    </style>
+</head>
+<body>
+<div class="header">
+	<button id="menuButton" onclick="toggleFilterContainer()" style="font-size: 24px; background: none; border: none; cursor: pointer;">☰</button> 
+  	<div id="menuDropdown" style="display: none; position: absolute; top: 50px; left: 10px; background-color: #f2f8f3; border: 1px solid #ccc; border-radius: 5px; width: 200px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);z-index: 2;"> 
+    		<button onclick="toggleFilterContainer()">Filtar/Classificar</button>
+  		<button onclick="toggleAddActivityContainer()">Adicionar Atividade</button>
+   	</div> 
+
+        <h1>Registro Pessoal de Atividades</h1>
+	
+        <div class="center add-activity-container">
+            
+    		<h2>Adicionar Atividade</h2>
+
+		<button id="toggleActivityButton" onclick="toggleAddActivityContainer()" style="font-size: 30px; background: none; border: none; cursor: pointer; color: black; position: absolute; top: 0px; right: 1px;">-</button>
+    		            
+	    <select id="modalidade" style="width: calc(100% - 22px); font-size: 18px; margin-bottom: 10px;">
+                <option value="" disabled selected>Escolha a modalidade</option>
+                <option value="Casas">Casas</option>
+                <option value="Ruas">Ruas</option>
+                <option value="Telefone">Telefone</option>
+                <option value="Mensagens">Mensagens</option>
+                <option value="Videoconferência">Videoconferência</option>
+                <option value="Informal">Informal</option>
+                <option value="TPE-Carrinho">TPE-Carrinho</option>
+                <option value="TPL-Carrinho">TPL-Carrinho</option>
+                <option value="TPL-Display">TPL-Display</option>
+                <option value="Revisitas">Revisitas</option>
+                <option value="Estudos">Estudos</option>
+            </select>
+
+            <div class="time-container" style="margin-bottom: 10px;">
+                 	<div class="hour-adjust">
+        		<button class="button-adjust" onclick="ajustarHoras(1)">+</button>
+        		<input type="number" id="horas" placeholder="Horas" min="0" class="time-input">
+        		<button class="button-adjust" onclick="ajustarHoras(-1)">-</button>
+    			</div>
+
+    			<div class="minute-adjust">
+        		<button class="button-adjust" onclick="ajustarMinutos(1)">+</button>
+        		<input type="number" id="minutos" placeholder="Minutos" min="0" max="59" class="time-input">
+        		<button class="button-adjust" onclick="ajustarMinutos(-1)">-</button>
+    			</div>
+            </div>
+
+	    	<div>
+		<input type="text" id="descricao" placeholder="Observações" style="width: calc(100% - 22px); margin-bottom: 10px;">
+		<button style="font-size: 25px;" onclick="adicionarAtividade()">Adicionar</button>
+		</div>
+     </div>
+
+     <div id="filterContainer" class="filter-container center" style="display: none;">
+            <h2>Filtrar Atividades</h2>
+	    <button id="toggleFilterButton" onclick="toggleFilterContainer()" style="font-size: 30px; background: none; border: none; cursor: pointer; color: #black; position: absolute; right: 10px; top: -1px;">-</button>
+
+            <input type="number" id="mes" placeholder="Mês (1-12)" min="1" max="12" style="width: 80px;">
+            <input type="number" id="ano" placeholder="Ano" style="width: 80px;">
+            <button onclick="filtrarAtividades()">Filtrar</button>
+
+	    <h2>Classificar Atividades</h2> <!-- Opções de Classificação -->
+    	    <select id="classificacao" onchange="classificarAtividades()">
+            	<option value="data">Data</option>
+        	<option value="descricao">Descrição</option>
+        	<option value="modalidade">Modalidade</option>
+        	<option value="tempo">Tempo Total</option>
+    	    </select>
+
+	    <!-- Ordem de Classificação -->
+	    <select id="ordem" onchange="classificarAtividades()">
+    		<option value="ascendente">Ascendente</option>
+    		<option value="descendente">Descendente</option>
+	    </select>
+      </div>
+</div>
+
+    <div class="container">
+        <div class="center">
+            <div class="activity-list" id="activityList"></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p id="totais">Totais do Mês Atual: 0 horas e 0 minutos</p>
+        <p>&copy; 2024 Registro Pessoal de Atividades</p>
+    </div>
+
+    <script>
+        class Atividade {
+    		constructor(descricao, horas, minutos, modalidade, data = new Date()) {
+        		this.data = data instanceof Date ? data : new Date(); // Usa a data passada, se for válida
+        		this.descricao = descricao;
+        		this.horas = horas;
+        		this.minutos = minutos;
+        		this.modalidade = modalidade;
+    		}
+
+    		getDataFormatada() {
+        		const opcoes = { weekday: 'long', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false };
+        		return this.data.toLocaleDateString('pt-BR', opcoes);
+    		}
+	}
+
+        class Modelo {
+            constructor() {
+                this.atividades = [];
+            }
+
+            adicionarAtividade(descricao, horas, minutos, modalidade) {
+                const atividade = new Atividade(descricao, horas, minutos, modalidade);
+                this.atividades.push(atividade);
+                this.atualizarArmazenamento();
+                return atividade;
+            }
+
+            atualizarArmazenamento() {
+                localStorage.setItem('atividades', JSON.stringify(this.atividades));
+            }
+
+            carregarAtividades() {
+    		const atividadesSalvas = JSON.parse(localStorage.getItem('atividades'));
+    		if (atividadesSalvas) {
+        		this.atividades = atividadesSalvas.map(a => 
+            			new Atividade(
+                			a.descricao, 
+                			a.horas, 
+                			a.minutos, 
+                			a.modalidade, 
+                			new Date(a.data) // Converte a data de string para Date
+            			)
+        		);
+    	   	}
+	    }
+
+            calcularTotais() {
+                return this.atividades.reduce((total, atividade) => {
+                    total.horas += atividade.horas;
+                    total.minutos += atividade.minutos;
+                    return total;
+                }, { horas: 0, minutos: 0 });
+            }
+
+            excluirAtividade(index) {
+                if (index > -1) {
+                    this.atividades.splice(index, 1);
+                    this.atualizarArmazenamento();
+                }
+            }
+
+            filtrarAtividades(mes, ano) {
+                return this.atividades.filter(atividade => {
+                    const dataAtividade = new Date(atividade.data); 
+                    return (dataAtividade.getMonth() + 1 === mes && dataAtividade.getFullYear() === ano);
+                });
+            }
+	    classificarAtividades(criterio, ordem = 'ascendente') {
+        	const ascending = ordem === 'ascendente' ? 1 : -1;
+        
+        	switch (criterio) {
+            		case 'data':
+                		this.atividades.sort((a, b) => ascending * (new Date(a.data) - new Date(b.data)));
+                		break;
+            		case 'descricao':
+                		this.atividades.sort((a, b) => ascending * a.descricao.localeCompare(b.descricao));
+                		break;
+            		case 'modalidade':
+                		this.atividades.sort((a, b) => ascending * a.modalidade.localeCompare(b.modalidade));
+                		break;
+            		case 'tempo':
+                		this.atividades.sort((a, b) => ascending * ((a.horas * 60 + a.minutos) - (b.horas * 60 + b.minutos)));
+                		break;
+            		default:
+                		break;
+        	}
+        	this.atualizarArmazenamento(); // Atualiza o armazenamento após a classificação
+    	    }
+        }
+
+        const modelo = new Modelo();
+        modelo.carregarAtividades();
+        atualizarListaAtividades();
+        atualizarTotais();
+
+	
+        function ajustarHoras(valor) {
+            const horasInput = document.getElementById("horas");
+            let horas = parseInt(horasInput.value) || 0;
+            horas = Math.max(0, horas + valor);
+            horasInput.value = horas;
+        }
+
+        function ajustarMinutos(valor) {
+            const minutosInput = document.getElementById("minutos");
+            let minutos = parseInt(minutosInput.value) || 0;
+            minutos = Math.max(0, minutos + valor);
+            if (minutos >= 60) {
+                ajustarHoras(Math.floor(minutos / 60));
+                minutos %= 60;
+            }
+            minutosInput.value = minutos;
+        }
+
+        function adicionarAtividade() {
+            const descricao = document.getElementById("descricao").value;
+            const horas = parseInt(document.getElementById("horas").value) || 0;
+            const minutos = parseInt(document.getElementById("minutos").value) || 0;
+            const modalidade = document.getElementById("modalidade").value;
+
+            if (descricao && modalidade) {
+                const atividade = modelo.adicionarAtividade(descricao, horas, minutos, modalidade);
+                atualizarListaAtividades();
+                atualizarTotais();
+                limparCampos();
+            } else {
+                alert("Por favor, preencha todos os campos.");
+            }
+        }
+
+        function filtrarAtividades() {
+            const mes = parseInt(document.getElementById("mes").value) || 0;
+            const ano = parseInt(document.getElementById("ano").value) || 0;
+
+            if (mes >= 1 && mes <= 12 && ano) {
+                const atividadesFiltradas = modelo.filtrarAtividades(mes, ano);
+                atualizarListaAtividades(atividadesFiltradas);
+            } else {
+                alert("Por favor, preencha o mês e ano corretamente.");
+            }
+        }
+	// Atualiza a função de classificação para captar o critério e a ordem
+	function classificarAtividades() {
+    		const criterio = document.getElementById("classificacao").value;
+    		const ordem = document.getElementById("ordem").value;
+    		modelo.classificarAtividades(criterio, ordem);
+    		atualizarListaAtividades(); // Atualiza a lista para mostrar a nova ordem
+	}
+
+
+        function atualizarListaAtividades(atividades = modelo.atividades) {
+            const activityList = document.getElementById("activityList");
+            activityList.innerHTML = "";
+
+            atividades.forEach((atividade, index) => {
+                const div = document.createElement("div");
+                div.classList.add("activity");
+                div.innerHTML = `
+                    <div class="activity-date">${atividade.getDataFormatada()}</div>
+                    <div class="activity-info">
+                        <span> ${atividade.horas} hora(s) e ${atividade.minutos} minuto(s) (${atividade.modalidade}) ${atividade.descricao} </span>
+                        <button onclick="excluirAtividade(${index})">Excluir</button>
+                    </div>
+                `;
+                activityList.appendChild(div);
+            });
+        }
+
+        function excluirAtividade(index) {
+            modelo.excluirAtividade(index);
+            atualizarListaAtividades();
+            atualizarTotais();
+        }
+
+        function atualizarTotais() {
+            const totais = modelo.calcularTotais();
+            document.getElementById("totais").innerText = `Totais do Mês Atual: ${totais.horas} horas e ${totais.minutos} minutos`;
+        }
+
+        function limparCampos() {
+            document.getElementById("descricao").value = "";
+            document.getElementById("horas").value = "";
+            document.getElementById("minutos").value = "";
+            document.getElementById("modalidade").value = "";
+        }
+
+	function toggleMenu() {
+  		const menuDropdown = document.getElementById('menuDropdown');
+  		if (menuDropdown.style.display === 'block') {
+    			menuDropdown.style.display = 'none';
+  		} else {
+    			menuDropdown.style.display = 'block';
+  		}
+	}
+	document.addEventListener('click', function(event) {
+  		const menuDropdown = document.getElementById('menuDropdown');
+  		const menuButton = document.getElementById('menuButton');
+
+  		if (event.target !== menuDropdown && event.target !== menuButton && menuDropdown.style.display === 'block') {
+    			toggleMenu();
+  		}
+	});
+
+
+	function toggleFilterContainer() {
+    		const filterContainer = document.getElementById('filterContainer');
+    		if (filterContainer.style.display === 'none' || filterContainer.style.display === '') {
+    			filterContainer.style.display = 'block';
+    			document.getElementById('toggleFilterButton').textContent = '-';
+    			toggleMenu();
+  		} else {
+    			filterContainer.style.display = 'none';
+  			}
+
+	}
+	
+	function toggleAddActivityContainer() {
+  		const container = document.querySelector('.add-activity-container');
+  		if (container.style.display === 'none' || container.style.display === '') {
+    			container.style.display = 'block';
+    			document.getElementById('toggleActivityButton').textContent = '-';
+    			toggleMenu();
+  		} else {
+    			container.style.display = 'none';
+  			}
+	}
+
+
+	document.getElementById('menuButton').onclick = toggleMenu;
+
+
+    </script>
+</body>
+</html>
