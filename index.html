@@ -269,6 +269,8 @@
             <input type="number" id="mes" placeholder="Mês (1-12)" min="1" max="12" style="width: 80px;">
             <input type="number" id="ano" placeholder="Ano" style="width: 80px;">
             <button onclick="filtrarAtividades()">Filtrar</button>
+		<button onclick="limparFiltro()">Limpar Filtro</button>
+
 
 	    <h2>Classificar Atividades</h2> <!-- Opções de Classificação -->
     	    <select id="classificacao" onchange="classificarAtividades()">
@@ -284,6 +286,7 @@
     		<option value="descendente">Descendente</option>
 	    </select>
       </div>
+	<p id="mesCabecalho"></p>
 </div>
 
     <div class="container">
@@ -293,7 +296,8 @@
     </div>
 
     <div class="footer">
-        <p id="totais">Totais do Mês Atual: 0 horas e 0 minutos</p>
+		<p id="mesRodape"></p>
+        <p id="totais">Totais do Mês Selecionado: 0 horas e 0 minutos</p>
         <p>&copy; 2024 Registro Pessoal de Atividades</p>
     </div>
 
@@ -390,8 +394,8 @@
 
         const modelo = new Modelo();
         modelo.carregarAtividades();
-        atualizarListaAtividades();
         atualizarTotais();
+	filtrarAtividades();
 
 	
         function ajustarHoras(valor) {
@@ -420,8 +424,8 @@
 
             if (descricao && modalidade) {
                 const atividade = modelo.adicionarAtividade(descricao, horas, minutos, modalidade);
-                atualizarListaAtividades();
-                atualizarTotais();
+		filtrarAtividades();
+
                 limparCampos();
             } else {
                 alert("Por favor, preencha todos os campos.");
@@ -429,15 +433,17 @@
         }
 
         function filtrarAtividades() {
-            const mes = parseInt(document.getElementById("mes").value) || 0;
-            const ano = parseInt(document.getElementById("ano").value) || 0;
+           	const mes = parseInt(document.getElementById("mes").value) || new Date().getMonth() + 1;
+  		const ano = parseInt(document.getElementById("ano").value) || new Date().getFullYear();
 
             if (mes >= 1 && mes <= 12 && ano) {
                 const atividadesFiltradas = modelo.filtrarAtividades(mes, ano);
                 atualizarListaAtividades(atividadesFiltradas);
+		atualizarTotais(atividadesFiltradas);  // Passa a lista filtrada para o cálculo dos totais
             } else {
                 alert("Por favor, preencha o mês e ano corretamente.");
             }
+		atualizarMes();
         }
 	// Atualiza a função de classificação para captar o critério e a ordem
 	function classificarAtividades() {
@@ -445,6 +451,22 @@
     		const ordem = document.getElementById("ordem").value;
     		modelo.classificarAtividades(criterio, ordem);
     		atualizarListaAtividades(); // Atualiza a lista para mostrar a nova ordem
+		filtrarAtividades();
+	}
+
+	function limparFiltro() {
+  		document.getElementById("mes").value = '';
+  		document.getElementById("ano").value = '';
+  		filtrarAtividades();
+		atualizarMes();
+	}
+
+	function atualizarMes() {
+  		const mes = parseInt(document.getElementById("mes").value) || new Date().getMonth() + 1;
+  		const mesNome = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"][mes - 1];
+		const ano = parseInt(document.getElementById("ano").value) || new Date().getFullYear();
+  		document.getElementById("mesRodape").innerText = `Atividades de ${mesNome} ${ano}`;
+  		document.getElementById("mesCabecalho").innerText = `Atividades de ${mesNome} ${ano}`;
 	}
 
 
@@ -467,15 +489,26 @@
         }
 
         function excluirAtividade(index) {
-            modelo.excluirAtividade(index);
-            atualizarListaAtividades();
-            atualizarTotais();
+            
+            	filtrarAtividades();
+	    	modelo.excluirAtividade(index);
+		filtrarAtividades();
         }
 
-        function atualizarTotais() {
-            const totais = modelo.calcularTotais();
-            document.getElementById("totais").innerText = `Totais do Mês Atual: ${totais.horas} horas e ${totais.minutos} minutos`;
-        }
+        function atualizarTotais(atividades = modelo.atividades) {
+    		const totais = atividades.reduce((total, atividade) => {
+        		total.horas += atividade.horas;
+        		total.minutos += atividade.minutos;
+        		return total;
+    		}, { horas: 0, minutos: 0 });
+
+    		const totalMinutos = totais.minutos;
+    		const horasExtras = Math.floor(totalMinutos / 60);
+    		const totalHoras = totais.horas + horasExtras;
+    		const totalMinutosRestantes = totalMinutos % 60;
+
+    		document.getElementById("totais").innerText = `Totais do Mês Selecionado: ${totalHoras} horas e ${totalMinutosRestantes} minutos`;
+	}
 
         function limparCampos() {
             document.getElementById("descricao").value = "";
